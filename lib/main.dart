@@ -1,23 +1,28 @@
-import 'package:hive_flutter/adapters.dart';
-import 'package:tapes/box.dart';
-import 'package:tapes/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:tapes/box.dart';
+import 'package:tapes/index.dart';
 import 'package:tapes/note.dart';
 
-void main() async{
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      systemNavigationBarColor: Color.fromRGBO(255, 249, 228, 100),
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: Colors.transparent,
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
-  
- await Hive.initFlutter();
- Hive.registerAdapter(NoteAdapter());
 
- box = await Hive.openBox('notebox');
+  await initializeDateFormatting('id', null);
+  await Hive.initFlutter();
+  Hive.registerAdapter(NoteAdapter());
+
+  box = await Hive.openBox('notebox');
   runApp(const MyApp());
 }
 

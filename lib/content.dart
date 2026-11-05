@@ -138,9 +138,7 @@ class _MainContentState extends State<MainContent> {
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: ElevatedButton(
                             onPressed: () {
-                                print('triggered');
-                                _addNote();
-                              
+                              _addNote();
                             },
                             style: ButtonStyle(
                               backgroundColor: WidgetStatePropertyAll(
