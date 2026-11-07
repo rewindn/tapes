@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:tapes/note.dart';
+import 'package:tapes/note_repository.dart';
+import 'package:uuid/uuid.dart';
 
 class MainContent extends StatefulWidget {
   const MainContent({super.key});
@@ -32,18 +34,19 @@ class _MainContentState extends State<MainContent> {
       return;
     }
 
-    final note = Note(note: noteController.text);
+    final note = Note(
+      id: const Uuid().v4(),
+      content: noteController.text,
+      createdAt: DateTime.now(),
+    );
 
-    // Save ke Hive
-  
-    final box = Hive.box('notebox');
-    box.put(note.id, note.toMap());
+    context.read<NoteRepository>().saveNote(note);
 
     noteController.clear();
 
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('User ${note.note} ditambahkan! ✅')));
+    ).showSnackBar(SnackBar(content: Text('User ${note.content} ditambahkan! ✅')));
 
     // Kembali ke home
   

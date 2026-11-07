@@ -9,9 +9,11 @@ class NoteRepository {
   NoteRepository({Box? box}) : _box = box ?? Hive.box('notebox');
 
   List<Note> getAllNotes() {
-    final notes = _box.values
-        .whereType<Map>()
-        .map((e) => Note.fromMap(e))
+    final notes = _box
+        .toMap()
+        .entries
+        .where((entry) => entry.value is Map)
+        .map((entry) => Note.fromMap(entry.value as Map, entry.key.toString()))
         .toList();
     notes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return notes;
@@ -19,7 +21,7 @@ class NoteRepository {
 
   Note? getNote(String id) {
     final raw = _box.get(id);
-    if (raw is Map) return Note.fromMap(raw);
+    if (raw is Map) return Note.fromMap(raw, id);
     return null;
   }
 

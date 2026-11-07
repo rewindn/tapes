@@ -4,8 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:tapes/index.dart';
-import 'package:tapes/note.dart';
+import 'package:tapes/note_repository.dart';
 
 void main() {
   late Directory tempDir;
@@ -13,9 +14,6 @@ void main() {
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('tapes_test_');
     Hive.init(tempDir.path);
-    if (!Hive.isAdapterRegistered(0)) {
-      Hive.registerAdapter(NoteAdapter());
-    }
     await Hive.openBox('notebox');
     await initializeDateFormatting('id', null);
   });
@@ -29,8 +27,9 @@ void main() {
 
   testWidgets('InderPage renders Home page with header and bottom nav', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: InderPage(),
+      Provider<NoteRepository>(
+        create: (_) => NoteRepository(box: Hive.box('notebox')),
+        child: const MaterialApp(home: InderPage()),
       ),
     );
     await tester.pumpAndSettle();

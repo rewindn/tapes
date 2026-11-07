@@ -52,3 +52,10 @@ lib/generated_plugin_registrant.dart
 *~
 .DS_Store
 Thumbs.db
+
+# AI/agent dan dokumen markdown
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+EXAMPLES.md
+*.md

@@ -1,7 +1,5 @@
-import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 
-part 'note.g.dart'; 
 enum BlockType {
   text,
   todo,
@@ -78,36 +76,20 @@ class TapeBlock {
   }
 }
 
-@HiveType(typeId: 0)
-class Note extends HiveObject {
-  @HiveField(0)
-  late String id;
+class Note {
+  final String id;
+  final String title;
+  final String content;
+  final List<TapeBlock> blocks;
+  final DateTime createdAt;
 
-  @HiveField(1)
-  late String note;
-
-  @HiveField(2)
-  late DateTime createdAt;
-
-  late String title;
-  late String content;
-  late List<TapeBlock> blocks;
-
-  Note({
-    String? id,
-    String? note,
-    String? title,
-    String? content,
-    List<TapeBlock>? blocks,
-    DateTime? createdAt,
-  }) {
-    this.id = id ?? const Uuid().v4();
-    this.note = note ?? '';
-    this.title = title ?? '';
-    this.content = content ?? this.note;
-    this.blocks = blocks ?? const [];
-    this.createdAt = createdAt ?? DateTime.now();
-  }
+  const Note({
+    required this.id,
+    this.title = '',
+    this.content = '',
+    this.blocks = const [],
+    required this.createdAt,
+  });
 
   String _deriveContent() {
     return blocks
@@ -128,7 +110,7 @@ class Note extends HiveObject {
     };
   }
 
-  factory Note.fromMap(Map<dynamic, dynamic> map) {
+  factory Note.fromMap(Map<dynamic, dynamic> map, String id) {
     final text = map['content'] as String? ?? map['note'] as String? ?? '';
     final rawBlocks = map['blocks'];
     List<TapeBlock> blocks = (rawBlocks is List ? rawBlocks : const [])
@@ -143,8 +125,7 @@ class Note extends HiveObject {
       blocks = [TapeBlock(type: BlockType.text, text: text)];
     }
     return Note(
-      id: map['id'] as String?,
-      note: text,
+      id: (map['id'] as String?) ?? id,
       title: map['title'] as String? ?? '',
       content: text,
       blocks: blocks,
@@ -154,5 +135,5 @@ class Note extends HiveObject {
   }
 
   @override
-  String toString() => 'Note(id: $id, note: $note, date: $createdAt)';
+  String toString() => 'Note(id: $id, content: $content, date: $createdAt)';
 }

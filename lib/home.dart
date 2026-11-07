@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:tapes/note.dart';
+import 'package:provider/provider.dart';
+import 'package:tapes/note_repository.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,7 +12,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late Box notebox;
+  late NoteRepository repo;
   late DateTime currentMonth;
   Set<DateTime> noteDates = {};
   dynamic _boxListenable;
@@ -20,10 +20,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    notebox = Hive.box('notebox');
+    repo = context.read<NoteRepository>();
     currentMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
     _loadNoteDates();
-    _boxListenable = notebox.listenable();
+    _boxListenable = repo.listenable;
     _boxListenable.addListener(_onNoteChanged);
   }
 
@@ -39,9 +39,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _loadNoteDates() {
-    final notes = notebox.values
-        .map((data) => Note.fromMap(Map<String, dynamic>.from(data)))
-        .toList();
+    final notes = repo.getAllNotes();
 
     noteDates = notes.map((note) {
       return DateTime(
