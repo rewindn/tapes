@@ -55,7 +55,7 @@ class _MainContentState extends State<MainContent> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(statusBarColor: Colors.transparent),
+      const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
     );
     return Center(
       child: Padding(
@@ -64,18 +64,18 @@ class _MainContentState extends State<MainContent> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(height: 28),
-            Text(
+            const SizedBox(height: 28),
+            const Text(
               'Record Your Day',
               style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
             ),
             Flexible(
               child: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: 586),
+                constraints: const BoxConstraints(maxHeight: 586),
                 child: Container(
                   width: double.infinity,
-                  margin: EdgeInsets.only(top: 24),
-                  padding: EdgeInsets.only(left: 20, right: 20, top: 16),
+                  margin: const EdgeInsets.only(top: 24),
+                  padding: const EdgeInsets.only(left: 20, right: 20, top: 16),
                   decoration: BoxDecoration(
                     color: const Color.fromRGBO(255, 174, 93, 100),
                     borderRadius: BorderRadius.circular(12),
@@ -85,7 +85,7 @@ class _MainContentState extends State<MainContent> {
                     children: [
                       Text(
                         'in $date',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 28,
                           fontFamily: 'inter',
@@ -94,7 +94,7 @@ class _MainContentState extends State<MainContent> {
                       ),
                       Text(
                         day,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           height: 0.8,
                           fontSize: 32,
@@ -102,8 +102,8 @@ class _MainContentState extends State<MainContent> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 12),
                         child: Text(
                           'Apa 1 masalah yang kamu selesaikan hari ini? ',
                           style: TextStyle(
@@ -122,8 +122,8 @@ class _MainContentState extends State<MainContent> {
                           maxLines: null,
                           minLines: null,
                           controller: noteController,
-                          style: TextStyle(),
-                          decoration: InputDecoration(
+                          style: const TextStyle(),
+                          decoration: const InputDecoration(
                             hintText: 'Tape In Here...',
                             hintStyle: TextStyle(color: Colors.black38),
                             filled: true,
@@ -131,7 +131,7 @@ class _MainContentState extends State<MainContent> {
                             border: UnderlineInputBorder(
                               borderSide: BorderSide(width: 0),
 
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.all(Radius.circular(16)),
                             ),
                           ),
                         ),
@@ -143,13 +143,13 @@ class _MainContentState extends State<MainContent> {
                             onPressed: () {
                               _addNote();
                             },
-                            style: ButtonStyle(
+                            style: const ButtonStyle(
                               backgroundColor: WidgetStatePropertyAll(
-                                const Color.fromARGB(255, 255, 229, 136),
+                                Color.fromARGB(255, 255, 229, 136),
                               ),
                               elevation: WidgetStatePropertyAll(2),
                             ),
-                            child: Icon(Icons.add),
+                            child: const Icon(Icons.add),
                           ),
                         ),
                       ),

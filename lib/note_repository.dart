@@ -4,9 +4,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'note.dart';
 
 class NoteRepository {
-  final Box _box;
+  final Box<dynamic> _box;
 
-  NoteRepository({Box? box}) : _box = box ?? Hive.box('notebox');
+  NoteRepository({Box<dynamic>? box}) : _box = box ?? Hive.box('notebox');
 
   List<Note> getAllNotes() {
     final notes = _box
@@ -29,5 +29,5 @@ class NoteRepository {
 
   Future<void> deleteNote(String id) => _box.delete(id);
 
-  ValueListenable<Box> get listenable => _box.listenable();
+  ValueListenable<Box<dynamic>> get listenable => _box.listenable();
 }

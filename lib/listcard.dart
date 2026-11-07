@@ -10,18 +10,18 @@ class ListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 24),
-      padding: EdgeInsets.only(left: 20, right: 20, top: 16),
-      decoration: BoxDecoration(
-        color: const Color.fromRGBO(255, 174, 93, 100),
-        borderRadius: BorderRadius.circular(12),
+      margin: const EdgeInsets.only(top: 24),
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 16),
+      decoration: const BoxDecoration(
+        color: Color.fromRGBO(255, 174, 93, 100),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             DateFormat.yMMMd().format(date),
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 28,
               fontFamily: 'inter',
@@ -30,7 +30,7 @@ class ListCard extends StatelessWidget {
           ),
           Text(
             DateFormat.EEEE().format(date),
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               height: 0.8,
               fontSize: 32,
@@ -43,7 +43,7 @@ class ListCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: Text(
               note,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
                 fontFamily: 'inter',

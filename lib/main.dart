@@ -8,7 +8,7 @@ import 'package:tapes/note_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -20,7 +20,7 @@ void main() async {
 
   await initializeDateFormatting('id', null);
   await Hive.initFlutter();
-  await Hive.openBox('notebox');
+  await Hive.openBox<dynamic>('notebox');
   runApp(
     Provider<NoteRepository>(
       create: (_) => NoteRepository(box: Hive.box('notebox')),

@@ -28,7 +28,7 @@ class TapeBlock {
     this.type = BlockType.text,
     this.text = '',
     this.isChecked = false,
-    this.children = const [],
+    this.children = const <TapeBlock>[],
   }) : id = id ?? const Uuid().v4();
 
   Map<String, dynamic> toMap() {
@@ -48,7 +48,7 @@ class TapeBlock {
       type: BlockType.fromString(map['type']),
       text: map['text'] as String? ?? '',
       isChecked: map['isChecked'] == true,
-      children: (rawChildren is List ? rawChildren : const [])
+      children: (rawChildren is List ? rawChildren : const <dynamic>[])
           .map((e) => e is TapeBlock
               ? e
               : e is Map
@@ -87,7 +87,7 @@ class Note {
     required this.id,
     this.title = '',
     this.content = '',
-    this.blocks = const [],
+    this.blocks = const <TapeBlock>[],
     required this.createdAt,
   });
 
@@ -113,7 +113,7 @@ class Note {
   factory Note.fromMap(Map<dynamic, dynamic> map, String id) {
     final text = map['content'] as String? ?? map['note'] as String? ?? '';
     final rawBlocks = map['blocks'];
-    List<TapeBlock> blocks = (rawBlocks is List ? rawBlocks : const [])
+    List<TapeBlock> blocks = (rawBlocks is List ? rawBlocks : const <dynamic>[])
         .map((e) => e is TapeBlock
             ? e
             : e is Map

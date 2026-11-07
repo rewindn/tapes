@@ -14,7 +14,7 @@ void main() {
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('tapes_test_');
     Hive.init(tempDir.path);
-    await Hive.openBox('notebox');
+    await Hive.openBox<dynamic>('notebox');
     await initializeDateFormatting('id', null);
   });
 
