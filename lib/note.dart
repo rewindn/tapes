@@ -82,6 +82,8 @@ class Note {
   final String content;
   final List<TapeBlock> blocks;
   final DateTime createdAt;
+  final String? notionPageId;
+  final Map<String, dynamic> properties;
 
   const Note({
     required this.id,
@@ -89,7 +91,29 @@ class Note {
     this.content = '',
     this.blocks = const <TapeBlock>[],
     required this.createdAt,
+    this.notionPageId,
+    this.properties = const <String, dynamic>{},
   });
+
+  Note copyWith({
+    String? id,
+    String? title,
+    String? content,
+    List<TapeBlock>? blocks,
+    DateTime? createdAt,
+    String? notionPageId,
+    Map<String, dynamic>? properties,
+  }) {
+    return Note(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      blocks: blocks ?? this.blocks,
+      createdAt: createdAt ?? this.createdAt,
+      notionPageId: notionPageId ?? this.notionPageId,
+      properties: properties ?? this.properties,
+    );
+  }
 
   String _deriveContent() {
     return blocks
@@ -107,12 +131,15 @@ class Note {
       'content': text,
       'blocks': blocks.map((block) => block.toMap()).toList(),
       'createdAt': createdAt.toString(),
+      'notionPageId': notionPageId,
+      'properties': properties,
     };
   }
 
   factory Note.fromMap(Map<dynamic, dynamic> map, String id) {
     final text = map['content'] as String? ?? map['note'] as String? ?? '';
     final rawBlocks = map['blocks'];
+    final rawProperties = map['properties'];
     List<TapeBlock> blocks = (rawBlocks is List ? rawBlocks : const <dynamic>[])
         .map((e) => e is TapeBlock
             ? e
@@ -131,6 +158,14 @@ class Note {
       blocks: blocks,
       createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
           DateTime.now(),
+      notionPageId: map['notionPageId'] is String
+          ? map['notionPageId'] as String
+          : null,
+      properties: rawProperties is Map
+          ? rawProperties.map(
+              (key, value) => MapEntry(key.toString(), value),
+            )
+          : const <String, dynamic>{},
     );
   }
 

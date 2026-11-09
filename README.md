@@ -1,97 +1,134 @@
 # Tapes
 
-Aplikasi jurnal harian **offline-first** untuk Flutter. Catat satu masalah yang kamu selesaikan setiap hari lewat UI minimalis. Semua data tersimpan lokal: tanpa backend, tanpa akun, tanpa koneksi.
+Local-first, hierarchical block-based journaling app. Catat satu hal yang kamu selesaikan setiap hari; semua data tersimpan di perangkat, tanpa backend dan tanpa akun.
 
 | | |
 |---|---|
 | Platform | Android, iOS, Web, Desktop (Flutter) |
-| Storage | Hive — local NoSQL key-value |
-| Serialization | Manual Map (`toMap` / `fromMap`) |
-| Reactive UI | `Box.listenable()` via `ValueListenable` |
+| Storage | Hive — NoSQL key-value, manual map serialization |
+| State / DI | Provider + `ValueListenableBuilder` |
+| Serialization | `toMap()` / `fromMap()` tanpa code generation |
 
-## Ringkasan Proyek
+## Tech Stack
 
-Tapes adalah aplikasi jurnal/catatan harian dengan pendekatan offline-first: seluruh operasi baca/tulis langsung ke penyimpanan lokal sehingga aplikasi tetap berfungsi tanpa jaringan. UI dibuat minimalis — kalender progres bulanan, form catatan, dan daftar catatan — dengan fokus pada satu kebiasaan: mencatat satu hal yang diselesaikan tiap hari.
+- **Flutter SDK** — UI lintas platform dengan satu basis kode.
+- **Dart 3** — model immutable (`const` constructor), pattern matching, class modifiers.
+- **Hive** — penyimpanan lokal key-value murni Dart, tanpa SQL dan tanpa native setup.
+- **Provider** — dependency injection `NoteRepository` ke widget tree.
+- **intl** — format tanggal/bulan (locale `id` diinisialisasi di `main()`).
 
-## Arsitektur Data
+## Architectural Overview
 
 ```mermaid
 flowchart TD
-    UI[Presentation / Provider] -->|CRUD Actions| Repo[NoteRepository]
-    Repo -->|Manual Map Serialization| DB[(Hive Box 'notebox')]
+    subgraph Presentation
+        UI[Stateless Widgets<br/>HomePage · ListTape · MainContent]
+        VLB[ValueListenableBuilder<br/>repo.listenable]
+    end
+
+    subgraph Domain
+        STATE[HomeUiState.fromNotes]
+        MODEL[Note · TapeBlock · BlockType]
+        CAL[CalendarUtils]
+    end
+
+    subgraph Data
+        REPO[NoteRepository]
+        HIVE[(Hive Box 'notebox')]
+    end
+
+    UI --> VLB
+    VLB --> STATE
+    STATE --> CAL
+    STATE --> MODEL
+    VLB --> REPO
+    REPO -->|toMap / fromMap| MODEL
+    REPO --> HIVE
+    HIVE -. perubahan box .-> VLB
 ```
 
-Alur:
+Prinsip pemisahan:
 
-1. Widget meminta data ke `NoteRepository`.
-2. Repository membaca/menulis ke Hive box `notebox`.
-3. Perubahan dipancarkan lewat `listenable()` sehingga UI ikut ter-render ulang tanpa `setState` manual.
+- **Rendering** — widget presentasional (`ProgressRing`, `WeekCard`, `CalendarGrid`) hanya menerima data jadi lewat constructor `const`; tidak ada akses repository atau Hive di dalamnya.
+- **Data transformation** — `NoteRepository` mengubah `Map` Hive menjadi `Note`/`TapeBlock` (dan sebaliknya). Widget tidak pernah memanggil `fromMap` sendiri.
+- **UI state** — `HomeUiState.fromNotes()` mengubah daftar `Note` menjadi field siap-render (`progress`, `weekDates`, `monthDates`, label tanggal). `HomePage` cukup memanggil satu baris dan mendistribusikan hasilnya.
+- **Reaktivitas** — perubahan box Hive dipancarkan lewat `repo.listenable`, sehingga UI ter-render ulang tanpa `setState` manual.
 
-## Engineering Decisions & Trade-offs
+## Engineering Trade-Offs
 
-### Hive sebagai penyimpanan lokal
+### Hive dibanding SQLite
 
-**Keputusan:** memakai Hive (NoSQL key-value) alih-alih SQLite/Drift.
+`TapeBlock` adalah pohon rekursif (`children: List<TapeBlock>`). Dengan Hive, satu catatan cukup disimpan sebagai map bersarang (`blocks` → `children` → …) dan dibaca kembali dengan `fromMap` defensif. Di SQLite, struktur ini menuntut tabel relasi + query join/rekursif dan pemetaan ORM, padahal kebutuhan aplikasi hanya key-value per catatan. Hive memberi tulis/baca lokal cepat, reactive listenable bawaan, dan zero-native setup. Konsekuensinya: tidak ada query relasional/agregasi SQL — untuk jurnal personal, itu tidak dibutuhkan.
 
-- **Kecepatan** — baca/tulis lokal tanpa query planner dan tanpa overhead SQL.
-- **Zero-native setup** — pure Dart, tanpa NDK/CocoaPods atau platform channel tambahan.
-- **Offline-first by default** — data di device, tidak butuh server.
-- **Reactive gratis** — `Box.listenable()` memberi notifikasi perubahan siap pakai untuk UI.
+### Manual map serialization, bukan HiveAdapter
 
-**Trade-off:** tidak ada query relasional/agregasi SQL; untuk kebutuhan jurnal skala personal, key-value sudah cukup.
+Model tidak memakai `@HiveType`/`@HiveField`/`HiveObject`. Serialisasi manual `toMap()`/`fromMap()` menghilangkan `build_runner` + `hive_generator`, membuat build instan, dan memungkinkan skema defensif: field hilang/null memakai default aman, elemen blok tak valid difilter dengan `whereType<TapeBlock>()`, dan catatan lama tanpa `blocks` dibungkus menjadi satu blok teks.
 
-### Manual Map Serialization vs HiveType/HiveAdapter
+### Isolasi CalendarUtils untuk determinisme
 
-**Keputusan:** serialisasi manual lewat `toMap()` / `fromMap()` dan menyimpan `Map<String, dynamic>` ke Hive, bukan adapter hasil code generation (`@HiveType`, `@HiveField`, `HiveObject`).
+Seluruh kalkulasi tanggal (progress bulanan, minggu berjalan, grid bulan) dipindah ke `CalendarUtils` sebagai fungsi murni. `calculateProgress` dan `getWeekDates` menerima parameter `now` opsional sehingga unit test tidak bergantung pada jam sistem. `HomeUiState.fromNotes` menerima `clock` untuk alasan yang sama. Tanpa isolasi ini, test hanya bisa memakai `DateTime.now()` dan hasilnya flaky di pergantian hari/bulan.
 
-- **Menghilangkan ketergantungan `build_runner` + `hive_generator`** — tidak ada langkah codegen sebelum build/run.
-- **Build time instan** — tidak ada file `.g.dart` yang harus diregenerasi setiap model berubah.
-- **Skema defensif** — `fromMap` memakai `whereType<TapeBlock>()`, fallback konten lama menjadi satu `TapeBlock`, dan toleran terhadap data Hive yang tidak lengkap sehingga mencegah `TypeError` runtime.
-- **Migrasi mudah** — field baru cukup ditangani di `fromMap`/`toMap` tanpa regenerasi adapter.
-- **Debuggable** — isi box bisa dibaca langsung sebagai map biasa.
-
-**Trade-off:** keamanan tipe tidak dijamin generator; nama key dan tipe field dijaga manual, dan data lama wajib tetap kompatibel di `fromMap`.
-
-## Struktur Folder Inti
-
-```
-lib/
-├── models/
-│   └── note.dart            # Note, TapeBlock, BlockType + toMap/fromMap
-├── repositories/
-│   └── note_repository.dart # Operasi Hive box "notebox"
-└── presentation/
-    ├── pages/
-    │   ├── home.dart        # Kalender + progress
-    │   ├── content.dart     # Form catatan
-    │   └── listtape.dart    # Daftar catatan
-    └── widgets/
-        └── listcard.dart    # Card catatan
-```
-
-## Cara Menjalankan
-
-Prasyarat: Flutter 3.38+ / Dart 3.10+.
+## Testing & Code Quality
 
 ```bash
-flutter pub get
-flutter run
-```
-
-Tidak ada langkah `build_runner`. Proyek memakai Manual Map Serialization, jadi tidak ada file generated yang perlu dibangun ulang.
-
-Verifikasi opsional:
-
-```bash
-flutter analyze
 flutter test
 ```
 
-## Demo & Screenshots
+| Berkas | Cakupan |
+|---|---|
+| `test/models/note_test.dart` | Round-trip `toMap`/`fromMap`, parsing defensif (map kosong, `createdAt` rusak, `blocks` null/tipe invalid), presisi tanggal ISO-8601 |
+| `test/models/home_ui_state_test.dart` | Mapping deterministik `HomeUiState.fromNotes` (label, progress, week/month dates) dengan `clock` tetap |
+| `test/utils/calendar_utils_test.dart` | Strip komponen waktu, progress bulan berjalan/lampau, tahun kabisat, minggu 7 hari mulai Minggu, grid kelipatan 7 |
+| `test/presentation/content_page_test.dart` | Widget test form: render input + tombol, alur ketik → simpan via `FakeNoteRepository`, catatan kosong ditolak |
+| `test/widget_test.dart` | Smoke test `InderPage`: header home dan navigasi 3 tab |
 
-| Aset | Deskripsi | Link |
-|------|-----------|------|
-| Demo GIF | Alur: buat catatan → kalender terisi → daftar catatan | `docs/demo.gif` *(placeholder)* |
-| Screenshot: Home | Kalender bulanan + progress | `docs/home.png` *(placeholder)* |
-| Screenshot: Add Note | Form input catatan | `docs/add-note.png` *(placeholder)* |
-| Screenshot: List | Daftar catatan | `docs/list.png` *(placeholder)* |
+`analysis_options.yaml` memakai strict mode produksi:
+
+- `strict-casts`, `strict-inference`, `strict-raw-types`
+- `missing_required_param` / `missing_return` sebagai error
+- lint tambahan: `always_declare_return_types`, `avoid_dynamic_calls`, `unawaited_futures`, `prefer_final_locals`, `prefer_const_constructors`, `prefer_const_literals_to_create_immutables`, `cancel_subscriptions`, `close_sinks`, `avoid_print`
+
+Baseline saat ini: `flutter analyze` → 0 issues.
+
+## Notion Sync Engine Architecture (Roadmap)
+
+Rencana sinkronisasi opsional ke Notion, tetap dengan Hive sebagai sumber kebenaran lokal.
+
+### Mapping TapeBlock → Notion blocks
+
+| `BlockType` | Notion block | Payload |
+|---|---|---|
+| `text` | `paragraph` | `paragraph.rich_text[0].text.content = block.text` |
+| `todo` | `to_do` | `to_do.rich_text[0].text.content = block.text`, `to_do.checked = block.isChecked` |
+| `toggle` | `toggle` | `toggle.rich_text[0].text.content = block.text`, `toggle.children = children` (rekursif) |
+
+Anak blok dipetakan rekursif ke `children` Notion; kedalaman mengikuti struktur `TapeBlock.children`. Setiap blok memakai `block.id` lokal sebagai kunci idempotensi, dengan tabel pemetaan `local block id → Notion block id` agar update tidak menduplikasi blok.
+
+### Offline sync queue
+
+- Setiap operasi tulis (`upsert`/`delete`) dicatat ke Hive box `sync_queue` sebagai entri append-only: `op`, `noteId`, `blockId`, `payload`, `attempts`, `nextRetryAt`, `createdAt`.
+- Flush dipicu oleh listener konektivitas dan saat aplikasi dibuka; UI tidak pernah menunggu jaringan karena Hive tetap sumber data lokal.
+- Retry memakai exponential backoff; respons `429` menghormati header `Retry-After`.
+- Operasi idempoten: `upsert` aman diulang, `delete` memakai tombstone sampai server mengonfirmasi.
+- Konflik diselesaikan last-write-wins berdasarkan `updatedAt` catatan; antrean bertahan setelah restart karena tersimpan di Hive, bukan memori.
+
+### Network resilience
+
+- Kegagalan jaringan tidak menghapus antrean; entri hanya dihapus setelah sukses.
+- Request dibatasi (batching per catatan) agar tidak menabrak rate limit Notion.
+- Error permanen (payload invalid) dipindah ke status `failed` dan dilaporkan, bukan di-retry tanpa henti.
+- Semua state sinkronisasi bersifat aditif terhadap skema `notebox`; data lokal tetap kompatibel jika sinkronisasi dimatikan.
+
+## Panduan Menjalankan
+
+Prasyarat: Flutter 3.38+ (Dart 3.10+).
+
+```bash
+git clone git@github.com:rewindn/tapes.git
+cd tapes
+flutter pub get
+flutter test
+flutter run
+```
+
+Tidak ada langkah `build_runner`: proyek memakai manual map serialization sehingga tidak ada file generated yang perlu dibangun ulang sebelum run.
