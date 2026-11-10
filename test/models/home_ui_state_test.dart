@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:tapes/models/home_ui_state.dart';
-import 'package:tapes/note.dart';
+import 'package:tapes/models/note.dart';
 
 void main() {
   setUpAll(() async {

@@ -3,9 +3,9 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tapes/note.dart';
+import 'package:tapes/models/note.dart';
 import 'package:tapes/services/notion/notion_block_mapper.dart';
-import 'package:tapes/services/notion/notion_client.dart';
+import 'package:tapes/services/notion/client.dart';
 
 class MockHttpAdapter implements HttpClientAdapter {
   MockHttpAdapter({required this.statusCode, required this.body});

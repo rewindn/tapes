@@ -1,8 +1,8 @@
-import 'package:tapes/note.dart';
+import 'package:tapes/models/note.dart';
 import 'package:tapes/services/notion/models/notion_schema.dart';
-import 'package:tapes/services/notion/notion_client.dart';
-import 'package:tapes/services/notion/notion_payload_builder.dart';
-import 'package:tapes/services/notion/notion_schema_service.dart';
+import 'package:tapes/services/notion/client.dart';
+import 'package:tapes/services/notion/payload.dart';
+import 'package:tapes/services/notion/schema.dart';
 import 'package:tapes/services/notion/remote_note_data_source.dart';
 
 class NotionSyncService {

@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
-import 'package:tapes/note.dart';
-import 'package:tapes/note_repository.dart';
+import 'package:tapes/models/note.dart';
+import 'package:tapes/repositories/note_repository.dart';
 
 void main() {
   late Directory tempDir;

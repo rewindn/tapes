@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
-import 'package:tapes/services/notion/notion_client.dart';
-import 'package:tapes/services/notion/notion_schema_service.dart';
+import 'package:tapes/services/notion/client.dart';
+import 'package:tapes/services/notion/schema.dart';
 import 'package:tapes/services/notion/remote_schema_data_source.dart';
 
 class FakeSchemaSource implements RemoteSchemaDataSource {

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tapes/note.dart';
+import 'package:tapes/models/note.dart';
 
 void expectBlockEquals(TapeBlock actual, TapeBlock expected) {
   expect(actual.id, expected.id);

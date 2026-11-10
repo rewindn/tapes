@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tapes/services/notion/hive_property_sanitizer.dart';
+import 'package:tapes/services/notion/sanitizer.dart';
 import 'package:tapes/services/notion/models/notion_schema.dart';
 import 'package:tapes/services/notion/notion_schema_parser.dart';
 

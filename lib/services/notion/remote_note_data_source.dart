@@ -1,4 +1,4 @@
-import 'package:tapes/note.dart';
+import 'package:tapes/models/note.dart';
 
 abstract interface class RemoteNoteDataSource {
   Future<String> createNotePage({

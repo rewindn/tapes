@@ -1,4 +1,4 @@
-import 'package:tapes/note.dart';
+import 'package:tapes/models/note.dart';
 
 class NotionBlockMapper {
   static Map<String, dynamic> blockToNotionJson(TapeBlock block) {

@@ -5,30 +5,56 @@ import 'package:hive/hive.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:tapes/index.dart';
-import 'package:tapes/note_repository.dart';
+import 'package:tapes/repositories/settings_repository.dart';
+import 'package:tapes/services/notion/token_store.dart';
+import 'package:tapes/ui/screens/inder_page.dart';
+import 'package:tapes/viewmodels/notion_settings_controller.dart';
+import 'package:tapes/repositories/note_repository.dart';
+
+class InMemoryTokenStore implements TokenStore {
+  String? token;
+
+  @override
+  Future<String?> read() async => token;
+
+  @override
+  Future<void> write(String value) async => token = value;
+
+  @override
+  Future<void> clear() async => token = null;
+}
 
 void main() {
   late Directory tempDir;
+  late NotionSettingsController controller;
+  late NoteRepository repository;
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('tapes_test_');
     Hive.init(tempDir.path);
-    await Hive.openBox<dynamic>('notebox');
+    final noteBox = await Hive.openBox<dynamic>('notebox');
+    final settingsBox = await Hive.openBox<dynamic>('settings');
+    final schemaBox = await Hive.openBox<dynamic>('notion_schema');
     await initializeDateFormatting('id', null);
-  });
 
-  tearDown(() async {
-    await Hive.close();
-    if (tempDir.existsSync()) {
-      await tempDir.delete(recursive: true);
-    }
+    controller = NotionSettingsController(
+      settingsRepository: SettingsRepository(settingsBox),
+      tokenStore: InMemoryTokenStore(),
+      schemaBox: schemaBox,
+    );
+    await controller.initialize();
+    repository = NoteRepository(box: noteBox);
   });
 
   testWidgets('InderPage renders Home page with header and bottom nav', (WidgetTester tester) async {
     await tester.pumpWidget(
-      Provider<NoteRepository>(
-        create: (_) => NoteRepository(box: Hive.box('notebox')),
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<NotionSettingsController>.value(
+            value: controller,
+          ),
+          Provider<NoteRepository>.value(value: repository),
+        ],
         child: const MaterialApp(home: InderPage()),
       ),
     );
@@ -48,18 +74,19 @@ void main() {
 
     // Verify navigation bar icons
     expect(find.byIcon(Icons.home), findsOneWidget);
-    expect(find.byIcon(Icons.add), findsOneWidget);
+    expect(find.byIcon(Icons.add_circle), findsOneWidget);
     expect(find.byIcon(Icons.bookmark), findsOneWidget);
+    expect(find.byIcon(Icons.settings), findsOneWidget);
 
-    // Tap Add note icon (tab 1)
-    await tester.tap(find.byIcon(Icons.add));
+    // Tap Add switches to the editor tab inside the shell
+    await tester.tap(find.byIcon(Icons.add_circle));
     await tester.pumpAndSettle();
     expect(find.text('Record Your Day'), findsOneWidget);
 
     // Tap Bookmark icon (tab 2)
     await tester.tap(find.byIcon(Icons.bookmark));
     await tester.pumpAndSettle();
-    expect(find.text('Recorded Tape'), findsOneWidget);
+    expect(find.text('Recorded On'), findsOneWidget);
 
     // Tap Home icon (tab 0)
     await tester.tap(find.byIcon(Icons.home));

@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-import 'package:tapes/note.dart';
+import 'package:tapes/models/note.dart';
 import 'package:tapes/utils/calendar_utils.dart';
 
 class HomeUiState {

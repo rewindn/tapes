@@ -1,15 +1,33 @@
 import 'package:flutter/foundation.dart';
-import 'package:tapes/note.dart';
-import 'package:tapes/note_repository.dart';
-import 'package:uuid/uuid.dart';
+import 'package:tapes/models/note.dart';
 
 class ContentViewModel extends ChangeNotifier {
-  ContentViewModel(this._repository);
+  ContentViewModel({List<TapeBlock>? blocks})
+    : _blocks = List.of(
+        blocks == null || blocks.isEmpty
+            ? [TapeBlock(type: BlockType.text, text: '')]
+            : blocks,
+      ) {
+    _initialSignatures = _signatures;
+  }
 
-  final NoteRepository _repository;
-  final List<TapeBlock> _blocks = [TapeBlock(type: BlockType.text, text: '')];
+  final List<TapeBlock> _blocks;
+  late List<String> _initialSignatures;
 
   List<TapeBlock> get blocks => List.unmodifiable(_blocks);
+
+  bool get isDirty => !listEquals(_signatures, _initialSignatures);
+
+  void markClean() {
+    _initialSignatures = _signatures;
+  }
+
+  List<String> get _signatures => _blocks
+      .map(
+        (block) =>
+            '${block.id}|${block.type.name}|${block.text}|${block.isChecked}',
+      )
+      .toList();
 
   void updateText(int index, String text) {
     if (index < 0 || index >= _blocks.length) return;
@@ -43,21 +61,5 @@ class ContentViewModel extends ChangeNotifier {
     if (index < 0 || index >= _blocks.length) return;
     _blocks[index] = _blocks[index].copyWith(type: newType);
     notifyListeners();
-  }
-
-  Future<bool> saveNote() async {
-    final text = _blocks
-        .map((block) => block.text)
-        .where((value) => value.isNotEmpty)
-        .join('\n');
-    if (text.isEmpty) return false;
-
-    final note = Note(
-      id: const Uuid().v4(),
-      blocks: List.of(_blocks),
-      createdAt: DateTime.now(),
-    );
-    await _repository.saveNote(note);
-    return true;
   }
 }

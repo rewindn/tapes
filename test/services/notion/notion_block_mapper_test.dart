@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tapes/note.dart';
+import 'package:tapes/models/note.dart';
 import 'package:tapes/services/notion/notion_block_mapper.dart';
 
 Map<String, dynamic> richText(String content) {

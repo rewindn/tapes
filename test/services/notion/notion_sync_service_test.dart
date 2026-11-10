@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tapes/note.dart';
+import 'package:tapes/models/note.dart';
 import 'package:tapes/services/notion/models/notion_schema.dart';
-import 'package:tapes/services/notion/notion_client.dart';
+import 'package:tapes/services/notion/client.dart';
 import 'package:tapes/services/notion/notion_schema_parser.dart';
-import 'package:tapes/services/notion/notion_schema_service.dart';
+import 'package:tapes/services/notion/schema.dart';
 import 'package:tapes/services/notion/notion_sync_service.dart';
 import 'package:tapes/services/notion/remote_note_data_source.dart';
 
@@ -54,6 +54,9 @@ class FakeSchemaService implements NotionSchemaService {
 
   @override
   Future<NotionDatabaseSchema?> peek(String databaseId) async => null;
+
+  @override
+  Future<void> cacheSchema(NotionDatabaseSchema schema) async {}
 
   @override
   Future<void> invalidate(String databaseId) async {
